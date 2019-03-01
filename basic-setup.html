@@ -101,8 +101,11 @@
       </li>
 
       <li>
-	<h3>Clone the git repository</h3>
+	<h3>Set up the git repository</h3>
+	<p>Clone an existing repository</p>
 	<pre class="command">git clone ... </pre>
+	<p>Start a new one with cookiecutter</p>
+	<pre class="command">cookiecutter https://github.com/pydanny/cookiecutter-django</pre>
       </li>
 
       <li>
@@ -130,7 +133,7 @@
 	<p>
 	  Add environment variables to the virtualenv, use script setup-keys
 	</p>
-	<pre class="command">setup-keys <i>project-slug</i> <i>environment directory</i></pre>
+	<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
 	
       </li>
       
@@ -152,7 +155,7 @@
 	alternatively:
 
 	<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
-	  psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
+psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
 	</pre>
       </li>
 
@@ -207,9 +210,9 @@ def get_env_variable(var_name):
 	<pre class="command">DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': aeq_db',
-        'USER': 'aeq_user
-        'PASSWORD': get_env_variable(AEQ_DB_PW') # store in environment variable
+        'NAME': '<i>db_name</i>',
+        'USER': '<i>db_user</i>',
+        'PASSWORD': get_env_variable(<i>DB_PW</i>) # store in environment variable
         'HOST': 'localhost',
         'PORT': '',                      # Set to empty string for default.
     }
@@ -217,29 +220,23 @@ def get_env_variable(var_name):
 	</pre>
 	
 	<p>
-	  However, for new deploys we have to set the environment
-	  variables. Add the following to the virtualenv activate script.
-	</p>
-	  
-	<pre class="command">
-	  export AEQ_DB_PW="dbpassword"
-	  export AEQ_SECRET_KEY="secretkey"
-	  export AEQ_GOOGLE_API_KEY="google maps api key"
-	  export AEQ_RECAPTCHA_KEY="recaptcha key"
-	</pre>
-	
-	<p>
-	  Obviously, include real values
-	</p>
-	
-	<p>
 	  Finally, apply the database migrations
 	</p>
-	
 	<pre class="command">python manage.py migrate</pre>
 
-
       </li>
+
+      <li>
+	<h3>Create directory for logs</h3>
+	<p>This should be in the project directory, but excluded from source control in .gitignore</p>
+	<p>Run commands in the project directory</p>
+	<pre class="command">mkdir logs
+touch logs/debug.log
+touch logs/gunicorn_supervisor.log
+touch logs/nginx-access.log
+touch logs/nginx-error.log
+	</pre>
+      </li>	  
       
       <li>
 	<h3>Configure gunicorn</h3>
@@ -247,7 +244,7 @@ def get_env_variable(var_name):
 	gunicorn_start_local.sh. Ensure filepaths are still correct on the new
 	deploy</p>
 	<pre class="command"> #!/bin/bash
-NAME="aeq"
+NAME="<i>app_name</i>"
 DJANGODIR="/usr/local/src/<i>project-slug</i>/"
 SOCKFILE="/usr/local/src/<i>project-slug</i>/run/gunicorn.sock"
 USER=<i>app_user</i>
@@ -301,20 +298,15 @@ stdout_logfile = /usr/local/src/<i>project-slug</i>/log/gunicorn_supervisor.log
 redirect_stderr = true                                                
 environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8                       ; Set UTF-8 as default encoding</pre>
 	
-	<p>
-	  Create the directory and file to store the log. <i>repo</i>/log should
-	  be ignored by git.
-	</p>
-	
-	<pre class="command">mkdir /usr/local/src/<i>project-slug</i>/log
-touch /usr/local/src/<i>project-slug</i>/log/gunicorn_supervisor.log</pre>	  
-
-	
 	<p>Keep the conf file in source control and symlink it to the supervisor conf directory</p>
 	<pre class="command">cd /etc/supervisor/conf.d
 sudo ln -s /usr/local/src/<i>project-slug</i>/srv/local/super_<i>project-slug</i>.conf
 sudo supervisorctl reread
 sudo supervisorctl update</pre>
+
+
+      <p>Add an alias to ~/.bashrc</p>
+      <pre class="command">echo 'alias re<i>project-slug</i>="sudo supervisorctl restart <i>project-slug</i>"' &gt&gt ~/.bashrc</pre>
       </li>
 
       <li>
@@ -379,20 +371,15 @@ server {
     }
 	  }</pre>
 
-	<p>Make sure log files exist</p>
-	<pre class="command">touch /usr/local/src/aeq/logs/nginx-access.log
-touch /usr/local/src/aeq/logs/nginx-error.log</pre>
-	
-
 	<p>Create a symlink to the config file under /etc/nginx/sites-enabled
 	and restart nginx</p>
 	<pre class="command">sudo ln -s /usr/local/src/aeq/bin/nginx_local_aeq.conf \
 /etc/nginx/sites-enabled/aeq
 sudo service nginx restart</pre>
 
-	<p>edit /etc/hosts to include a mapping from the name aeq to
+	<p>edit /etc/hosts to include a mapping from the project name to
 	the local dev site</p>
-	<pre class="command">sudo echo "127.0.0.1	aeq" >> /etc/hosts</pre>
+	<pre class="command">sudo echo "127.0.0.1	<i>project-slug</i>" >> /etc/hosts</pre>
 </li>
 
 <li>
