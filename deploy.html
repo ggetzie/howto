@@ -1,0 +1,353 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <title>Deploy to Production</title>
+    <style type="text/css">
+    body {
+	font-family: verdana;
+	text-align: left;
+	width: 75%;
+    }
+
+    pre.command {
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 110%;
+	text-align: left;
+	border: thin solid rgb(0,0,0);
+	width: 100%;
+	line-height: normal;
+	padding: 1%;
+	margin: 1% 0 1% 2%;
+	text-align: left;
+	background-color: #CCCCCC;
+    }
+    
+    li {
+	margin-bottom: 40px;
+    }
+
+    ol.toc li {
+	margin-bottom: 10px;
+    }
+    
+    p#important {
+	background-color: red;
+	text-align: center;
+	font-weight: bold;
+    }      
+    
+    a.btt {
+	font-size: small;
+    }
+    </style>
+
+    <script type="text/javascript">
+    function maketoc() {
+	allh3 = document.getElementsByTagName('h3');
+	insBefore = document.getElementById("start");
+	toc = document.createElement('ol');
+	toc.setAttribute("class", "toc");
+	for (var i = 0; i < allh3.length; i++) {
+	    sectionnumber = i + 1;
+	    // make a bookmark anchor at the h3 heading
+	    sectionlink = document.createElement('a');
+	    sectionlink.name = "section" + sectionnumber;
+	    allh3[i].parentNode.insertBefore(sectionlink, allh3[i]);			  
+	    
+	    // add a "Back to Top" link
+	    btt = document.createElement('a');
+	    btt.href = "#top";
+	    btt.innerHTML = "Back To Top";
+	    btt.setAttribute("class", "btt");
+	    allh3[i].parentNode.appendChild(btt);
+	    
+	    
+	    // add a link to the bookmark to the table of contents
+	    thisli = document.createElement('li')
+	    toclink = document.createElement('a');
+	    toclink.href = "#section" + sectionnumber;
+	    toclink.innerHTML = allh3[i].innerHTML;
+	    thisli.appendChild(toclink);
+	    toc.appendChild(thisli);
+	}
+	insBefore.parentNode.insertBefore(toc, insBefore);
+    }
+    </script>
+  </head>
+
+  <body onload="maketoc()">
+    <a name="top"></a>
+    <h1>Deploy to Production</h1>
+    <h2>Table of Contents</h2>
+    <h2 id="start">Instructions</h2>
+    <ol id="instructions">
+      
+      <li>
+	<h3>Create app user</h3>
+	<p>
+	  Create the webapps group if it doesn't exist.
+	</p>
+	<pre class="command">sudo groupadd --system webapps</pre>
+	<pre class="command">sudo useradd --system --gid webapps --shell /bin/bash --home /home/<i>username</i> <i>username</i></pre>
+      </li>
+
+      <li>
+	<h3>Set up the git repository</h3>
+	<p>Clone an existing repository</p>
+	<pre class="command">git clone ... </pre>
+      </li>
+
+      <li>
+	<h3>Install python packages via pip</h3>
+	<p> requirements.txt should be in the top level of the git
+	  repository. It should include numpy, scipy, scikit-learn, matplotlib,
+	  django, pandas, gunicorn, psycopg2 and their dependencies.
+	</p>
+	<pre class="command"> pip install -r requirements/requirements.txt</pre>
+      </li>      
+
+      <li>
+	<h3>Set up the virtualenv</h3>
+	<p>
+	  Set up the virtualenv wherever environments are stored. This should be outside the repo.
+	</p>
+	<pre class="command">cd /path/to/env/
+/usr/bin/python3 -m virtualenv --python=/usr/bin/python3 aeqenv</pre>
+	
+	<p>
+	  Add an alias to .bashrc to activate the environment.
+	</p>
+	<pre class="command">alias aeqenv="source /path/to/env/aeqenv/bin/activate"</pre>
+
+	<p>
+	  Add environment variables to the virtualenv, use script setup-keys
+	</p>
+	<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
+
+	<p>
+	  Make sure DJANGO_SETTINGS_MODULE points to the production settings
+	</p>
+	
+      </li>
+      
+      <li>      
+	<h3>Create database</h3>
+	<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
+psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
+	</pre>
+      </li>
+
+      <li>
+	<h3>Set up settings files</h3>
+	<p>
+	  Remove the unnecessary parts of the production settings file.
+	</p>
+
+      </li>
+
+      <li>
+	<h3>Create directory for logs</h3>
+	<p>This should be in the project directory, but excluded from source control in .gitignore</p>
+	<p>Run commands in the project directory</p>
+	<pre class="command">mkdir logs
+touch logs/debug.log
+touch logs/gunicorn_supervisor.log
+touch logs/nginx-access.log
+touch logs/nginx-error.log
+	</pre>
+
+	<p>
+	  Or use script make-logs
+	</p>
+	<pre class="command">make-logs</pre>
+	
+      </li>	  
+      
+      <li>
+	<h3>Configure gunicorn</h3>
+	<p>
+	The script below should be included in a cloned repo as
+	gunicorn_start_local.sh. Ensure filepaths are still correct on the new
+	deploy. Use the production version. Make sure DJANGO_SETTINGS_MODULE
+	points to the production settings.
+	</p>
+	
+	<pre class="command"> #!/bin/bash
+NAME="<i>app_name</i>"
+DJANGODIR="/usr/local/src/<i>project-slug</i>/"
+SOCKFILE="/usr/local/src/<i>project-slug</i>/run/gunicorn.sock"
+USER=<i>app_user</i>
+GROUP=webapps
+NUM_WORKERS=3
+DJANGO_SETTINGS_MODULE=config.settings.production
+DJANGO_WSGI_MODULE=config.wsgi
+
+echo "Starting $NAME as `whoami`"
+
+# Activate the virtual environment
+cd $DJANGODIR
+source /usr/local/src/env/<i>envdir</i>/bin/activate
+
+export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+export PYTHONPATH=$DJANGODIR:$PYTHONPATH
+
+# Create the run directory if it doesn't exist
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+# Start you Django Unicorn 
+# Programs meant to be run under supervisor should not
+# daemonize themselves.
+# (do not use --daemon)
+
+exec /usr/local/src/env/<i>envdir</i>/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
+    -- name $NAME \
+    -- workers $NUM_WORKERS \
+    -- user=$USER --group=$GROUP \
+    --bind=unix:$SOCKFILE \
+    --log-level=debug \
+    --log-file=-
+	</pre>
+      </li>
+      
+      <li>
+	<h3>Configure supervisor</h3>
+
+	<p>
+	  Supervisor monitors the gunicorn process and restarts it automtically
+	  when the machine reboots. Make sure to use th production version.
+	</p>
+
+	<pre class="command">[program:<i>project-slug</i>]
+command = /usr/local/src/<i>project-slug</i>/bin/gunicorn_start_local.bash ; Command to start app
+user = <i>app_user</i>                                                     ; User to run as
+; Where to write log messages
+stdout_logfile = /usr/local/src/<i>project-slug</i>/log/gunicorn_supervisor.log   
+; Save stderr in the same log
+redirect_stderr = true                                                
+environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8                       ; Set UTF-8 as default encoding</pre>
+      </li>
+
+      <li>
+	<h3>Configure nginx</h3>
+	<p>The settings below should be included in the repo as bin/nginx_local_aeq.conf</p>
+	<pre class="command">upstream aeq_app_server {
+  # fail_timeout=0 means we always retry an upstream even if it failed
+  # to return a good HTTP response (in case the Unicorn master nukes a
+  # single worker for timing out).
+ 
+  server 127.0.0.1:8000 fail_timeout=0;
+}
+ 
+server {
+ 
+    listen   80;
+    server_name <i>project-slug</i>;
+ 
+    client_max_body_size 4G;
+ 
+    access_log /usr/local/src/<i>project-slug</i>/log/nginx-access.log;
+    error_log /usr/local/src/<i>project-slug</i>/log/nginx-error.log;
+ 
+    location /static/ {
+        alias   /usr/local/src/<i>project-slug</i>/staticfiles/;
+    }
+    
+    # location /media/ {
+    #     alias   /usr/local/src/cashcal/media/;
+    # }
+ 
+    location / {
+        # an HTTP header important enough to have its own Wikipedia entry:
+        #   http://en.wikipedia.org/wiki/X-Forwarded-For
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+ 
+        # enable this if and only if you use HTTPS, this helps Rack
+        # set the proper protocol for doing redirects:
+        # proxy_set_header X-Forwarded-Proto https;
+ 
+        # pass the Host: header from the client right along so redirects
+        # can be set properly within the Rack application
+        proxy_set_header Host $http_host;
+ 
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+ 
+        # set "proxy_buffering off" *only* for Rainbows! when doing
+        # Comet/long-poll stuff.  It's also safe to set if you're
+        # using only serving fast clients with Unicorn + nginx.
+        # Otherwise you _want_ nginx to buffer responses to slow
+        # clients, really.
+        # proxy_buffering off;
+ 
+        # Try to serve static files from nginx, no point in making an
+        # *application* server like Unicorn/Rainbows! serve static files.
+        if (!-f $request_filename) {
+            proxy_pass http://prophit_app_server;
+            break;
+        }
+    }
+	  }</pre>
+      </li>
+
+      <li>
+	<h3>Symlink server configuration files</h3>
+	<p>run link-srv script from ~/bin</p>
+	<pre class="command">link-srv <i>project</i> production <i>slug</i></pre>
+      </li>
+      
+
+      <li>
+	<h3>Create directory for MEDIA_ROOT and user uploads</h3>
+
+	<pre class="command">sudo mkdir -p /var/www/<i>project</i>/uploads
+	  sudo chown -R <i>app_user</i>:webapps /var/www/<i>project</i>/
+	</pre>
+      </li>
+      
+
+      <li>
+	<h3>Install & configure memcached</h3>
+	<p>Memcached is installed in the server. Make sure the caching is set up in the production settings file</p>
+	<pre class="command">CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+</pre>
+      </li>
+
+      <li>
+	<h3>Enable SSL</h3>
+	<pre class="command">sudo certbot --nginx</pre>
+
+	<p>
+	  uncomment line in nginx config
+	</p>
+	<pre class="command">proxy_set_header X-Forwarded-Proto https;</pre>
+	<p>
+	  After running certbot, commit the changes to the git repo on the server.
+	</p>
+      </li>
+
+      <li>
+	<h3>Install rabbit server and configure celery (holdover from prophit)</h3>
+	<p>
+	First make sure rabbit server is
+	installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
+	instructions.</a>
+	</p>
+
+	<p>Link the appropriate celery config file to supervisor</p>
+	<pre class="command">sudo ln -s /usr/local/src/$PROPHIT_DIR/bin/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
+sudo supervisorctl reread
+sudo supervisorctl update</pre>
+      </li>
+    </ol>
+  </body>
+</html>
