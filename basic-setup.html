@@ -83,103 +83,105 @@
     <h2 id="start">Instructions</h2>
     <ol id="instructions">
       <li>
-	<h3>Install System dependencies</h3>
+		<h3>Install System dependencies</h3>
 	
-	<pre class="command">sudo apt-get install python3-dev python3-setuptools libatlas-base-dev gfortran \ 
-	  libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
-	  supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev
-	</pre>
+		<pre class="command">sudo apt-get install python3-dev python3-setuptools libatlas-base-dev gfortran \ 
+	  	libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
+	  	supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev
+		</pre>
       </li>
       
       <li>
-	<h3>Create app user</h3>
-	<p>
-	  Create the webapps group if it doesn't exist.
-	</p>
-	<pre class="command">sudo groupadd --system webapps</pre>
-	<pre class="command">sudo useradd --system --gid webapps --shell /bin/bash --home /home/<i>username</i> <i>username</i></pre>
+		<h3>Create app user</h3>
+			<p>
+	  			Create the webapps group if it doesn't exist.
+			</p>
+			<pre class="command">sudo groupadd --system webapps</pre>
+			<pre class="command">sudo useradd --system --gid webapps --shell /bin/bash --home /home/<i>username</i> <i>username</i></pre>
       </li>
 
       <li>
-	<h3>Set up the git repository</h3>
-	<p>Clone an existing repository</p>
-	<pre class="command">git clone ... </pre>
-	<p>Start a new one with cookiecutter</p>
-	<pre class="command">cookiecutter https://github.com/pydanny/cookiecutter-django</pre>
-      </li>
-
-      <li>
-	<h3>Install python packages via pip</h3>
-	<p> requirements.txt should be in the top level of the git
-	  repository. It should include numpy, scipy, scikit-learn, matplotlib,
-	  django, pandas, gunicorn, psycopg2 and their dependencies.
-	</p>
-	<pre class="command"> pip install -r requirements/requirements.txt</pre>
-      </li>      
-
-      <li>
-	<h3>Set up the virtualenv</h3>
-	<p>
-	  Set up the virtualenv wherever environments are stored. This should be outside the repo.
-	</p>
-	<pre class="command">cd /path/to/env/
+		<h3>Set up the virtualenv</h3>
+			<p>
+	  			Set up the virtualenv wherever environments are stored. This should be outside the repo.
+			</p>
+			<pre class="command">cd /path/to/env/
 /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 aeqenv</pre>
 	
-	<p>
-	  Add an alias to .bashrc to activate the environment.
-	</p>
-	<pre class="command">alias aeqenv="source /path/to/env/aeqenv/bin/activate"</pre>
+			<p>
+	  		Add an alias to .bashrc to activate the environment.
+			</p>
+			<pre class="command">alias aeqenv="source /path/to/env/aeqenv/bin/activate"</pre>
 
-	<p>
-	  Add environment variables to the virtualenv, use script setup-keys
-	</p>
-	<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
-	
+			<p>
+	  			Add environment variables to the virtualenv, use script setup-keys
+			</p>
+			<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
+	  </li>	  
+
+      <li>
+		<h3>Set up the git repository</h3>
+		<p>Clone an existing repository</p>
+		<pre class="command">git clone ... </pre>
+		<p>Start a new one with cookiecutter</p>
+		<pre class="command">cookiecutter https://github.com/pydanny/cookiecutter-django</pre>
       </li>
+
+      <li>
+		<h3>Install python packages via pip</h3>
+		<p> 
+			requirements.txt should be in the top level of the git
+	  		repository. It should include numpy, scipy, scikit-learn, matplotlib,
+	  		django, pandas, gunicorn, psycopg2 and their dependencies.
+		</p>
+		<pre class="command"> pip install -r requirements/requirements.txt</pre>
+      </li>      
       
       <li>      
-	<h3>Create database</h3>
-	<pre class="command">sudo su postgres
-	  createuser --interactive -P
-	  Enter name of role to add: aeq_user
-	  Enter password for new role:
-	  Enter it again:
-	  Shall the new role be a superuser? (y/n) n
-	  Shall the new role be allowed to create databases? (y/n) y
-	  Shall the new role be allowed to create more new roles? (y/n) y
+		<h3>Create database</h3>
+		<pre class="command">
+		sudo su postgres
+	  	createuser --interactive -P
+	  	Enter name of role to add: aeq_user
+	  	Enter password for new role:
+	  	Enter it again:
+	  	Shall the new role be a superuser? (y/n) n
+	  	Shall the new role be allowed to create databases? (y/n) y
+	  	Shall the new role be allowed to create more new roles? (y/n) y
 
-	  createdb --owner aeq_user aeq_db
-	  logout
-	</pre>
+	  	createdb --owner aeq_user aeq_db
+	  	logout
+		</pre>
 
 	alternatively:
 
-	<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
+		<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
 psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
-	</pre>
+		</pre>
       </li>
 
       <li>
-	<h3>Set up settings files</h3>
-	<p>
-	  This part is only necessary for starting from scratch.  Make new
-	  directory, separate base from files for local, staging, production,
-	  etc. This will be set up already if you started with
-	  django-cookiecutter.
-	</p>
-	<pre class="command">cd /project/prophit_main/
+		<h3>Set up settings files</h3>
+		<p>
+		  	This part is only necessary for starting from scratch.  Make new
+	  		directory, separate base from files for local, staging, production,
+	  		etc. This will be set up already if you started with
+	  		django-cookiecutter.
+		</p>
+
+		<pre class="command">cd /project/prophit_main/
 mkdir settings
 mv settings.py settings/base.py	 
 cd settings
 touch __init__.py
-	</pre>
+		</pre>
 	
-	<p>
-	  Add nifty function for getting environment variables. (already
-	  included with cookiecutter).
-	</p>
+		<p>
+	  		Add nifty function for getting environment variables. (already
+	  		included with cookiecutter).
+		</p>
 	
-	<pre class="command">from django.core.exceptions import ImproperlyConfigured
+		<pre class="command">from django.core.exceptions import ImproperlyConfigured
 
 def get_env_variable(var_name):
     """Get the environment variable or return exception"""
@@ -190,13 +192,13 @@ def get_env_variable(var_name):
         raise ImproperlyConfigured(error_msg)
 	</pre>
 	
-	<p>
-	  This has to be done for each deploy: Add a line to the virtualenv
-	  activate script to set the DJANGO_SETTINGS_MODULE environment variable
-	  for our new settings structure.
-	</p>
+		<p>
+		  	This has to be done for each deploy: Add a line to the virtualenv
+	  		activate script to set the DJANGO_SETTINGS_MODULE environment variable
+	  		for our new settings structure.
+		</p>
 	
-	<pre class="command">export DJANGO_SETTINGS_MODULE="config.settings.local"</pre>
+		<pre class="command">export DJANGO_SETTINGS_MODULE="config.settings.local"</pre>
 
       </li>
 
