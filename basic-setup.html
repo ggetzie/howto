@@ -23,13 +23,26 @@
 	background-color: #CCCCCC;
     }
     
-    li {
+    ol#instructions > li {
 	margin-bottom: 40px;
     }
 
     ol.toc li {
 	margin-bottom: 10px;
     }
+
+	ul.small-list li {
+		margin-bottom: auto;
+	}
+	
+	h3 {
+		display: inline-block;
+		margin-bottom: 0;
+	}
+
+	ul.small-list {
+		list-style: none;
+	}
     
     p#important {
 	background-color: red;
@@ -44,34 +57,34 @@
 
     <script type="text/javascript">
     function maketoc() {
-	allh3 = document.getElementsByTagName('h3');
-	insBefore = document.getElementById("start");
-	toc = document.createElement('ol');
-	toc.setAttribute("class", "toc");
-	for (var i = 0; i < allh3.length; i++) {
-	    sectionnumber = i + 1;
-	    // make a bookmark anchor at the h3 heading
-	    sectionlink = document.createElement('a');
-	    sectionlink.name = "section" + sectionnumber;
-	    allh3[i].parentNode.insertBefore(sectionlink, allh3[i]);			  
-	    
-	    // add a "Back to Top" link
-	    btt = document.createElement('a');
-	    btt.href = "#top";
-	    btt.innerHTML = "Back To Top";
-	    btt.setAttribute("class", "btt");
-	    allh3[i].parentNode.appendChild(btt);
-	    
-	    
-	    // add a link to the bookmark to the table of contents
-	    thisli = document.createElement('li')
-	    toclink = document.createElement('a');
-	    toclink.href = "#section" + sectionnumber;
-	    toclink.innerHTML = allh3[i].innerHTML;
-	    thisli.appendChild(toclink);
-	    toc.appendChild(thisli);
-	}
-	insBefore.parentNode.insertBefore(toc, insBefore);
+		allh3 = document.getElementsByTagName('h3');
+		insBefore = document.getElementById("start");
+		toc = document.createElement('ol');
+		toc.setAttribute("class", "toc");
+		for (var i = 0; i < allh3.length; i++) {
+			sectionnumber = i + 1;
+			// make a bookmark anchor at the h3 heading
+			sectionlink = document.createElement('a');
+			sectionlink.name = "section" + sectionnumber;
+			allh3[i].parentNode.insertBefore(sectionlink, allh3[i]);			  
+			
+			// add a "Back to Top" link
+			btt = document.createElement('a');
+			btt.href = "#top";
+			btt.innerHTML = "Back To Top";
+			btt.setAttribute("class", "btt");
+			allh3[i].parentNode.appendChild(btt);
+			
+			
+			// add a link to the bookmark to the table of contents
+			thisli = document.createElement('li')
+			toclink = document.createElement('a');
+			toclink.href = "#section" + sectionnumber;
+			toclink.innerHTML = allh3[i].innerHTML;
+			thisli.appendChild(toclink);
+			toc.appendChild(thisli);
+		}
+		insBefore.parentNode.insertBefore(toc, insBefore);
     }
     </script>
   </head>
@@ -82,350 +95,261 @@
     <h2>Table of Contents</h2>
     <h2 id="start">Instructions</h2>
     <ol id="instructions">
-      <li>
-		<h3>Install System dependencies</h3>
-	
-		<pre class="command">sudo apt-get install python3-dev python3-setuptools libatlas-base-dev gfortran \ 
-	  	libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
-	  	supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev
-		</pre>
-      </li>
+		<li>
+			<h3>Assumptions</h3>
+			<p>
+				The following instructions assume the project will kept in a folder titled <em>project-slug</em> located at /usr/local/src/<em>project-slug</em> The python virtual environment will be stored at /usr/local/src/env/<em>project-slug</em>.
+			</p>
+			
+		</li>
+		<li>
+			<h3>Install System dependencies</h3>
+		
+			<pre class="command">sudo apt-get install python3-dev python3-setuptools libatlas-base-dev gfortran \ 
+libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
+supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev
+			</pre>
+		</li>
       
-      <li>
-		<h3>Create app user</h3>
-			<p>
-	  			Create the webapps group if it doesn't exist.
-			</p>
-			<pre class="command">sudo groupadd --system webapps</pre>
-			<pre class="command">sudo useradd --system --gid webapps --shell /bin/bash --home /home/<i>username</i> <i>username</i></pre>
-      </li>
+		<li>
+			<h3>Create app user</h3>
+				<p>
+					Create the webapps group if it doesn't exist, then create the user. The user should be named <em>project-slug</em>_user
+				</p>
+				<pre class="command">[ $(getent group webapps) ] || sudo groupadd webapps
+sudo useradd --system --gid webapps --shell /bin/bash --home /home/<em>username</em> <em>username</em></pre>
 
-      <li>
-		<h3>Set up the virtualenv</h3>
-			<p>
-	  			Set up the virtualenv wherever environments are stored. This should be outside the repo.
-			</p>
-			<pre class="command">cd /path/to/env/
-/usr/bin/python3 -m virtualenv --python=/usr/bin/python3 aeqenv</pre>
-	
-			<p>
-	  		Add an alias to .bashrc to activate the environment.
-			</p>
-			<pre class="command">alias aeqenv="source /path/to/env/aeqenv/bin/activate"</pre>
+				or run the script <pre class="command">setup_user <em>username</em></pre>
 
-			<p>
-	  			Add environment variables to the virtualenv, use script setup-keys
-			</p>
-			<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
-	  </li>	  
+		</li>
 
-      <li>
-		<h3>Set up the git repository</h3>
-		<p>Clone an existing repository</p>
-		<pre class="command">git clone ... </pre>
-		<p>Start a new one with cookiecutter</p>
-		<pre class="command">cookiecutter https://github.com/pydanny/cookiecutter-django</pre>
-      </li>
+		<li>
+			<h3>Set up the virtualenv</h3>
+				<p>
+					Set up the virtualenv wherever environments are stored. This should be outside the repo.
+				</p>
+				<pre class="command">cd /path/to/env/
+/usr/bin/python3 -m virtualenv --python=/usr/bin/python3 <em>project-slug</em></pre>
+		
+				<p>
+				Add an alias to .bashrc to activate the environment.
+				</p>
+				<pre class="command">alias <em>project-slug</em>env="source /path/to/env/<em>project-slug</em>/bin/activate"</pre>
 
-      <li>
-		<h3>Install python packages via pip</h3>
-		<p> 
-			requirements.txt should be in the top level of the git
-	  		repository. It should include numpy, scipy, scikit-learn, matplotlib,
-	  		django, pandas, gunicorn, psycopg2 and their dependencies.
-		</p>
-		<pre class="command"> pip install -r requirements/requirements.txt</pre>
-      </li>      
+				<p>
+					Add environment variables to the virtualenv, use script setup-keys with the <em>project-slug</em> (name of environment directory) and <em>project-state</em> (local or production). Use the <em>--wagtail</em> option for wagtail projects.
+				</p>
+				<pre class="command">setup_keys <em>project-slug</em> <em>project-state</em></pre>
+				<p>
+					setup_keys will also add a shortcut to ~/.bashrc to activate the environment
+				</p>
+				<pre class="command"><em>project-slug</em>env</pre>
+		</li>	  
+
+		<li>
+			<h3>Set up the git repository</h3>
+			<p>Clone an existing repository</p>
+			<pre class="command">git clone ... </pre>
+			<p>Start a new one with cookiecutter</p>
+			<pre class="command">cookiecutter https://github.com/pydanny/cookiecutter-django</pre>
+			<p>Start a new wagtail project. Activate the environment install wagtail and run wagtail start</p>
+			<pre class="command">cd /usr/local/src
+<em>project-slug</em>env
+pip install wagtail
+wagtail start <em>project-slug</em>
+echo "alias <em>project-slug</em>=\"cd /usr/local/src/<em>project-slug</em>\"" >> ~/.bashrc</pre>
+			<p>For new repositories, initialize and copy the gitignore template</p>
+			<pre class="command">git init
+cp ~/bin/templates/gitignore /usr/local/src/<em>project-slug</em>/.gitignore</pre>			
+		</li>
+
+		<li>
+			<h3>Install python packages via pip</h3>
+			<p> 
+				Use the requirements.txt file if available in the repository.
+				At a minimum ensure the following packages are available:
+			</p>				
+			<ul class="small-list">
+				<li>django</li>
+				<li>psycopg2</li>
+				<li>gunicorn</li>
+				<li>django-environ</li>
+				<li>django-extensions</li>
+			</ul>
+			<p>Copy the file from ~/bin/requirements/basic-wagtail.txt for wagtail projects</p>
+			<pre class="command"> pip install -r requirements/requirements.txt</pre>
+		</li>      
       
-      <li>      
-		<h3>Create database</h3>
-		<pre class="command">
-		sudo su postgres
-	  	createuser --interactive -P
-	  	Enter name of role to add: aeq_user
-	  	Enter password for new role:
-	  	Enter it again:
-	  	Shall the new role be a superuser? (y/n) n
-	  	Shall the new role be allowed to create databases? (y/n) y
-	  	Shall the new role be allowed to create more new roles? (y/n) y
+		<li>      
+			<h3>Create database</h3>
+			<p><strong>Preferred</strong> use the script. Make sure the environment is activated and the DB password environment variable is set.</p>
+			<pre class="command"> setup_db <em>project-slug</em>_user <em>project-slug</em>_db $<em>project_slug</em>_DB_PW</pre>			
 
-	  	createdb --owner aeq_user aeq_db
-	  	logout
-		</pre>
+			<p>Interactively</p>
+			<pre class="command">sudo su postgres
+createuser --interactive -P
+Enter name of role to add: aeq_user
+Enter password for new role:
+Enter it again:
+Shall the new role be a superuser? (y/n) n
+Shall the new role be allowed to create databases? (y/n) y
+Shall the new role be allowed to create more new roles? (y/n) y
 
-	alternatively:
+createdb --owner aeq_user aeq_db
+logout</pre>
 
-		<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
-psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
-		</pre>
-      </li>
+			<p>Command line</p>			
+			<pre class="command">psql postgres -c "CREATE ROLE <em>db_user</em> WITH LOGIN PASSWORD '${DB_PW}';"
+psql postgres -c "CREATE DATABASE <em>db_name</em> OWNER <em>db_user</em>;"
+			</pre>
+		</li>
 
-      <li>
-		<h3>Set up settings files</h3>
-		<p>
-		  	This part is only necessary for starting from scratch.  Make new
-	  		directory, separate base from files for local, staging, production,
-	  		etc. This will be set up already if you started with
-	  		django-cookiecutter.
-		</p>
+		<li>
+			<h3>Set up settings files</h3>
+			<p>
+				This is mostly unncessary. Cookiecutter or wagtail will create the necessary settings files.
+			</p>
+			<p>
+				Make a new directory, separate base from files for local, staging, production,
+				etc. 
+			</p>
 
-		<pre class="command">cd /project/prophit_main/
+			<pre class="command">cd /usr/local/src/<em>project-slug</em>
 mkdir settings
 mv settings.py settings/base.py	 
 cd settings
-touch __init__.py
-		</pre>
-	
-		<p>
-	  		Add nifty function for getting environment variables. (already
-	  		included with cookiecutter).
-		</p>
-	
-		<pre class="command">from django.core.exceptions import ImproperlyConfigured
+touch __init__.py</pre>
+		
+			<p>
+				Use django-environ to get environment variables
+			</p>
 
-def get_env_variable(var_name):
-    """Get the environment variable or return exception"""
-    try:
-        return os.environ[var_name]
-    except KeyError:
-        error_msg = "Set the {} environment variable".format(var_name)
-        raise ImproperlyConfigured(error_msg)
-	</pre>
-	
-		<p>
-		  	This has to be done for each deploy: Add a line to the virtualenv
-	  		activate script to set the DJANGO_SETTINGS_MODULE environment variable
-	  		for our new settings structure.
-		</p>
-	
-		<pre class="command">export DJANGO_SETTINGS_MODULE="config.settings.local"</pre>
-
-      </li>
+			<pre class="command">
+import environ			
+env = environ.Env()
+env("variable_name", default="default")</pre>
+		</li>
 
       
-      <li>
-	<h3>Configure Database</h3>
-	<p>
-	  Note, this is only necessary for setting up from scratch. Settings
-	  will be ready if set up from cloned repo.
-	</p>
-	<pre class="command">DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '<i>db_name</i>',
-        'USER': '<i>db_user</i>',
-        'PASSWORD': get_env_variable(<i>DB_PW</i>) # store in environment variable
-        'HOST': 'localhost',
-        'PORT': '',                      # Set to empty string for default.
-    }
-}
-	</pre>
-	
-	<p>
-	  Finally, apply the database migrations
-	</p>
-	<pre class="command">python manage.py migrate</pre>
+		<li>
+			<h3>Configure Database</h3>
+			<p>
+			Note, this is only necessary for setting up from scratch. Settings
+			will be ready if set up from cloned repo.
+			</p>
+			<pre class="command">
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.postgresql_psycopg2',
+		'NAME': '<em>project-slug</em>_db',
+		'USER': '<em>project-slug</em>_user',
+		'PASSWORD': env(<em>project-slug</em>_DB_PW), # store in environment variable
+		'HOST': 'localhost',
+		'PORT': '',                      # Set to empty string for default.
+	}
+}</pre>
+			
+			<p>
+			Finally, apply the database migrations
+			</p>
+			<pre class="command">./manage.py migrate</pre>
 
-      </li>
+		</li>
 
-      <li>
-	<h3>Create directory for logs</h3>
-	<p>This should be in the project directory, but excluded from source control in .gitignore</p>
-	<p>Run commands in the project directory</p>
-	<pre class="command">mkdir logs
-touch logs/debug.log
-touch logs/gunicorn_supervisor.log
-touch logs/nginx-access.log
-touch logs/nginx-error.log
-	</pre>
-      </li>	  
-      
-      <li>
-	<h3>Configure gunicorn</h3>
-	<p>The script below should be included in a cloned repo as
-	gunicorn_start_local.sh. Ensure filepaths are still correct on the new
-	deploy</p>
-	<pre class="command"> #!/bin/bash
-NAME="<i>app_name</i>"
-DJANGODIR="/usr/local/src/<i>project-slug</i>/"
-SOCKFILE="/usr/local/src/<i>project-slug</i>/run/gunicorn.sock"
-USER=<i>app_user</i>
-GROUP=webapps
-NUM_WORKERS=3
-DJANGO_SETTINGS_MODULE=config.settings.local
-DJANGO_WSGI_MODULE=config.wsgi
+		<li>
+			<h3>Create directory for logs</h3>
+			<p>This should be in the project directory, but excluded from source control in .gitignore</p>
+			<p>Use the script make_logs in the project directory</p>
+			<pre class="command">make_logs</pre>
+		</li>
 
-echo "Starting $NAME as `whoami`"
+		<li>
+			<h3>Configure srv files</h3>
+			<p>
+				This includes setting up the configuration files for supervisor and nginx as well as the startup script for gunicorn.
+			</p>
+			<p>
+				Run the script <strong>setup_srv</strong> to create the srv folder in the root project folder with all the necessary files.
+			</p>
+			<pre class="command">setup_srv <em>project-slug</em> <em>project-slug</em>_user</pre>
 
-# Activate the virtual environment
-cd $DJANGODIR
-source /usr/local/src/env/<i>envdir</i>/bin/activate
-
-export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
-export PYTHONPATH=$DJANGODIR:$PYTHONPATH
-
-# Create the run directory if it doesn't exist
-RUNDIR=$(dirname $SOCKFILE)
-test -d $RUNDIR || mkdir -p $RUNDIR
-
-# Start you Django Unicorn 
-# Programs meant to be run under supervisor should not
-# daemonize themselves.
-# (do not use --daemon)
-
-exec /usr/local/src/env/<i>envdir</i>/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
-    -- name $NAME \
-    -- workers $NUM_WORKERS \
-    -- user=$USER --group=$GROUP \
-    --bind=unix:$SOCKFILE \
-    --log-level=debug \
-    --log-file=-
-	</pre>
-      </li>
-      
-      <li>
-	<h3>Configure supervisor</h3>
-
-	<p>
-	  Supervisor monitors the gunicorn process and restarts it automtically
-	  when the machine reboots
-	</p>
-
-	<pre class="command">[program:<i>project-slug</i>]
-command = /usr/local/src/<i>project-slug</i>/bin/gunicorn_start_local.bash ; Command to start app
-user = <i>app_user</i>                                                     ; User to run as
-; Where to write log messages
-stdout_logfile = /usr/local/src/<i>project-slug</i>/log/gunicorn_supervisor.log   
-; Save stderr in the same log
-redirect_stderr = true                                                
-environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8                       ; Set UTF-8 as default encoding</pre>
-	
-	<p>Keep the conf file in source control and symlink it to the supervisor conf directory</p>
-	<pre class="command">cd /etc/supervisor/conf.d
-sudo ln -s /usr/local/src/<i>project-slug</i>/srv/local/super_<i>project-slug</i>.conf
-sudo supervisorctl reread
-sudo supervisorctl update</pre>
+			<p>
+				After the srv directory is setup run the script <strong>link_srv</strong> to create symbolic links for the appropriate services to find and use the conf files
+			</p>
+			<pre class="command">link_srv <em>project-slug</em> <em>project-state</em></pre>
+		</li>
 
 
-      <p>Add an alias to ~/.bashrc</p>
-      <pre class="command">echo 'alias re<i>project-slug</i>="sudo supervisorctl restart <i>project-slug</i>"' &gt&gt ~/.bashrc</pre>
-      </li>
+		<li>
+			<h3>Create directory for MEDIA_ROOT and user uploads</h3>
 
-      <li>
-	<h3>Configure nginx</h3>
-	<p>The settings below should be included in the repo as bin/nginx_local_aeq.conf</p>
-	<pre class="command">upstream aeq_app_server {
-  # fail_timeout=0 means we always retry an upstream even if it failed
-  # to return a good HTTP response (in case the Unicorn master nukes a
-  # single worker for timing out).
- 
-  server 127.0.0.1:8000 fail_timeout=0;
-}
- 
-server {
- 
-    listen   80;
-    server_name <i>project-slug</i>;
- 
-    client_max_body_size 4G;
- 
-    access_log /usr/local/src/<i>project-slug</i>/log/nginx-access.log;
-    error_log /usr/local/src/<i>project-slug</i>/log/nginx-error.log;
- 
-    location /static/ {
-        alias   /usr/local/src/<i>project-slug</i>/staticfiles/;
-    }
-    
-    # location /media/ {
-    #     alias   /usr/local/src/cashcal/media/;
-    # }
- 
-    location / {
-        # an HTTP header important enough to have its own Wikipedia entry:
-        #   http://en.wikipedia.org/wiki/X-Forwarded-For
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
- 
-        # enable this if and only if you use HTTPS, this helps Rack
-        # set the proper protocol for doing redirects:
-        # proxy_set_header X-Forwarded-Proto https;
- 
-        # pass the Host: header from the client right along so redirects
-        # can be set properly within the Rack application
-        proxy_set_header Host $http_host;
- 
-        # we don't want nginx trying to do something clever with
-        # redirects, we set the Host: header above already.
-        proxy_redirect off;
- 
-        # set "proxy_buffering off" *only* for Rainbows! when doing
-        # Comet/long-poll stuff.  It's also safe to set if you're
-        # using only serving fast clients with Unicorn + nginx.
-        # Otherwise you _want_ nginx to buffer responses to slow
-        # clients, really.
-        # proxy_buffering off;
- 
-        # Try to serve static files from nginx, no point in making an
-        # *application* server like Unicorn/Rainbows! serve static files.
-        if (!-f $request_filename) {
-            proxy_pass http://prophit_app_server;
-            break;
-        }
-    }
-	  }</pre>
+			<pre class="command">sudo mkdir -p /var/www/<em>project-slug</em>/uploads
+sudo chown -R <em>app_user</em>:webapps /var/www/<em>project-slug</em>/</pre>
 
-	<p>Create a symlink to the config file under /etc/nginx/sites-enabled
-	and restart nginx</p>
-	<pre class="command">sudo ln -s /usr/local/src/aeq/bin/nginx_local_aeq.conf \
-/etc/nginx/sites-enabled/aeq
-sudo service nginx restart</pre>
-
-	<p>edit /etc/hosts to include a mapping from the project name to
-	the local dev site</p>
-	<pre class="command">sudo echo "127.0.0.1	<i>project-slug</i>" >> /etc/hosts</pre>
-</li>
-
-<li>
-  <h3>Create directory for MEDIA_ROOT and user uploads</h3>
-
-  <pre class="command">sudo mkdir -p /var/www/<i>project-slug</i>/uploads
-sudo chown -R <i>app_user</i>:webapps /var/www/<i>project-slug</i>/
-  </pre>
-</li>
+			<p>
+				For wagtail projects this will already be included in the project folder as the media/ directory. Make sure it is ignored by git.
+			</p>
+		</li>
     
 
-      <li>
-	<h3>Install & configure memcached</h3>
-	<p>Install memcached package and python library</p>
-	<pre class="command">sudo apt install memcached
-pip install python-memcached
-	</pre>
-	<p>Add to django settings files</p>
-	<pre class="command">CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
-        'LOCATION': '127.0.0.1:11211',
-    }
+		<li>
+			<h3>(Optional) Install & configure memcached</h3>
+			<p>Install memcached package and python library</p>
+			<pre class="command">sudo apt install memcached
+pip install python-memcached</pre>
+			<p>Add to django settings files</p>
+			<pre class="command">
+CACHES = {
+	'default': {
+		'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
+		'LOCATION': '127.0.0.1:11211',
+		}
 }
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-</pre>
-      </li>
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'</pre>
+		</li>
+
+		<li>
+			<h3>(Optional) Install & configure Redis</h3>
+			<pre class="command">sudo apt install redis
+pip install django_redis</pre>
+			<p>Add the following line to the virtual environment activate script</p>
+			<pre class="command">export REDIS_URL="redis://127.0.0.1:6379/1"</pre>
+			<p>Add to the django settings file. Included if using cookiecutter.</p>
+			<pre class="command">
+# CACHES
+# ------------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env("REDIS_URL"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # Mimicing memcache behavior.
+            # http://niwinz.github.io/django-redis/latest/#_memcached_exceptions_behavior
+            "IGNORE_EXCEPTIONS": True,
+        },
+        "KEY_PREFIX": "<em>project-slug</em>"
+    }
+}			
+			</pre>
+
+		<li>
+			<h3>(Optional) Install NLTK corpora via python shell</h3>
+			<p>Only necessary if using the python natural language toolkit</p>
+			<pre class="command">nltk.download()</pre>
+		</li>
 
       <li>
-	<h3>Install NLTK corpora via python shell (holdover from prophit)</h3>
-	<pre class="command">nltk.download()</pre>
-      </li>
+		<h3>(Optional) Install rabbit server and configure celery</h3>
+		<p>
+			First make sure rabbit server is
+			installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
+			instructions.</a>
+		</p>
 
-      <li>
-	<h3>Install rabbit server and configure celery (holdover from prophit)</h3>
-	<p>
-	First make sure rabbit server is
-	installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
-	instructions.</a>
-	</p>
-
-	<p>Link the appropriate celery config file to supervisor</p>
-	<pre class="command">sudo ln -s /usr/local/src/$PROPHIT_DIR/bin/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
+		<p>Link the appropriate celery config file to supervisor</p>
+		<pre class="command">sudo ln -s /usr/local/src/<em>project-slug</em>/srv/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
 sudo supervisorctl reread
 sudo supervisorctl update</pre>
       </li>
