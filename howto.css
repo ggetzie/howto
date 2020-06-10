@@ -1,0 +1,67 @@
+body {
+	font-family: verdana;
+	text-align: left;
+    width: 75%;
+    max-width: 1164px;
+    margin: auto;
+}
+
+pre.command {
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 110%;
+	text-align: left;
+	border: thin solid rgb(0,0,0);
+	width: 100%;
+	line-height: normal;
+	padding: 1%;
+	margin: 1% 0 1% 2%;
+	text-align: left;
+	background-color: #CCCCCC;
+}
+
+code {
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 110%;
+	text-align: left;
+	border: thin solid rgb(0,0,0);
+	width: 100%;
+	line-height: normal;
+	padding: 1%;
+	margin: 1% 0 1% 2%;
+	text-align: left;
+    background-color: #CCCCCC;
+    display: block;
+}    
+    
+ol#instructions > li {
+	margin-bottom: 40px;
+    }
+
+ol.toc li {
+	margin-bottom: 10px;
+    }
+
+ul.small-list li {
+		margin-bottom: auto;
+	}
+	
+h3 {
+		display: inline-block;
+		margin-bottom: 0;
+	}
+
+ul.small-list {
+		list-style: none;
+	}
+    
+p#important {
+	background-color: red;
+	text-align: center;
+	font-weight: bold;
+    }      
+    
+a.btt {
+	font-size: small;
+    }

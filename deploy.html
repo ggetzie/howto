@@ -1,183 +1,195 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Deploy to Production</title>
-    <style type="text/css">
-    body {
-	font-family: verdana;
-	text-align: left;
-	width: 75%;
-    }
+	<head>
+		<title>Deploy to Production</title>
+		<link rel="stylesheet" type="text/css" href="howto.css">
+	</head>
 
-    pre.command {
-	font-family: monospace;
-	font-weight: bold;
-	font-size: 110%;
-	text-align: left;
-	border: thin solid rgb(0,0,0);
-	width: 100%;
-	line-height: normal;
-	padding: 1%;
-	margin: 1% 0 1% 2%;
-	text-align: left;
-	background-color: #CCCCCC;
-    }
-    
-    li {
-	margin-bottom: 40px;
-    }
+  	<body onload="maketoc()">
+    	<a name="top"></a>
+    	<h1>Deploy to Production</h1>
+    	<h2>Table of Contents</h2>
+    	<h2 id="start">Instructions</h2>
+		<ol id="instructions">
+			<li>
+				<h3>Assumptions</h3>
+				<p>Ensure all of the necessary packages are available on the production machine. This should include postgresql, supervisor, psycopg2, nginx</p>
+				<pre class="command">sudo apt-get install python3-dev python3-setuptools libatlas-base-dev gfortran \ 
+libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
+supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev</pre>
+				<p>Clone the homebin repository at <a href="https://github.com/ggetzie/homebin">https://github.com/ggetzie/homebin</a> to the home directory and place it on the path to make the setup scripts available</p>
+				<p>
+					The following instructions assume the project will kept in a folder titled <em>project-slug</em> located at /usr/local/src/<em>project-slug</em> The python virtual environment will be stored at /usr/local/src/env/<em>project-slug</em>.
+				</p>
+			</li>		
 
-    ol.toc li {
-	margin-bottom: 10px;
-    }
-    
-    p#important {
-	background-color: red;
-	text-align: center;
-	font-weight: bold;
-    }      
-    
-    a.btt {
-	font-size: small;
-    }
-    </style>
+			<li>
+				<h3>Create app user</h3>
+				<p>
+					Create the webapps group if it doesn't exist, then create the user. The user should be named <em>project-slug</em>_user
+				</p>
+				<pre class="command">[ $(getent group webapps) ] || sudo groupadd webapps
+sudo useradd --system --gid webapps --shell /bin/bash --home /home/<em>username</em> <em>username</em></pre>
 
-    <script type="text/javascript">
-    function maketoc() {
-	allh3 = document.getElementsByTagName('h3');
-	insBefore = document.getElementById("start");
-	toc = document.createElement('ol');
-	toc.setAttribute("class", "toc");
-	for (var i = 0; i < allh3.length; i++) {
-	    sectionnumber = i + 1;
-	    // make a bookmark anchor at the h3 heading
-	    sectionlink = document.createElement('a');
-	    sectionlink.name = "section" + sectionnumber;
-	    allh3[i].parentNode.insertBefore(sectionlink, allh3[i]);			  
-	    
-	    // add a "Back to Top" link
-	    btt = document.createElement('a');
-	    btt.href = "#top";
-	    btt.innerHTML = "Back To Top";
-	    btt.setAttribute("class", "btt");
-	    allh3[i].parentNode.appendChild(btt);
-	    
-	    
-	    // add a link to the bookmark to the table of contents
-	    thisli = document.createElement('li')
-	    toclink = document.createElement('a');
-	    toclink.href = "#section" + sectionnumber;
-	    toclink.innerHTML = allh3[i].innerHTML;
-	    thisli.appendChild(toclink);
-	    toc.appendChild(thisli);
-	}
-	insBefore.parentNode.insertBefore(toc, insBefore);
-    }
-    </script>
-  </head>
+				or run the script <pre class="command">setup_user <em>username</em></pre>
 
-  <body onload="maketoc()">
-    <a name="top"></a>
-    <h1>Deploy to Production</h1>
-    <h2>Table of Contents</h2>
-    <h2 id="start">Instructions</h2>
-    <ol id="instructions">
+			</li>		
+
+			<li>
+				<h3>Set up the git repository</h3>
+				<p>Clone the repository onto the production machine from github.</p>
+				<pre class="command">git clone ... </pre>
+			</li>
+			<li>
+				<h3>Set up the virtualenv</h3>
+				<p>Set up the virtualenv wherever environments are stored. This should be outside the repo.</p>
+				<pre class="command">cd /path/to/env/
+/usr/bin/python3 -m virtualenv --python=/usr/bin/python3 <em>project-slug</em></pre>
+		
+				<p>
+					Add environment variables to the virtualenv, use script setup-keys with the <em>project-slug</em> (name of environment directory) and <em>project-state</em> (local or production). Use the <em>--wagtail</em> option for wagtail projects.
+				</p>
+				<pre class="command">setup_keys <em>project-slug</em> <em>project-state</em></pre>
+				<p>setup_keys will also add a shortcut to ~/.bashrc to activate the environment</p>
+
+				<pre class="command"><em>project-slug</em>env</pre>
+			</li>	  
+
+			<li>
+				<h3>Install python packages via pip</h3>
+				<p> 
+					requirements.txt should be in the top level of the git
+					repository. 
+				</p>
+				<pre class="command"> pip install -r requirements/requirements.txt</pre>
+			</li>      
+
       
-      <li>
-	<h3>Create app user</h3>
-	<p>
-	  Create the webapps group if it doesn't exist.
-	</p>
-	<pre class="command">sudo groupadd --system webapps</pre>
-	<pre class="command">sudo useradd --system --gid webapps --shell /bin/bash --home /home/<i>username</i> <i>username</i></pre>
-      </li>
-
-      <li>
-	<h3>Set up the git repository</h3>
-	<p>Clone an existing repository</p>
-	<pre class="command">git clone ... </pre>
-      </li>
-
-      <li>
-	<h3>Install python packages via pip</h3>
-	<p> requirements.txt should be in the top level of the git
-	  repository. It should include numpy, scipy, scikit-learn, matplotlib,
-	  django, pandas, gunicorn, psycopg2 and their dependencies.
-	</p>
-	<pre class="command"> pip install -r requirements/requirements.txt</pre>
-      </li>      
-
-      <li>
-	<h3>Set up the virtualenv</h3>
-	<p>
-	  Set up the virtualenv wherever environments are stored. This should be outside the repo.
-	</p>
-	<pre class="command">cd /path/to/env/
-/usr/bin/python3 -m virtualenv --python=/usr/bin/python3 aeqenv</pre>
-	
-	<p>
-	  Add an alias to .bashrc to activate the environment.
-	</p>
-	<pre class="command">alias aeqenv="source /path/to/env/aeqenv/bin/activate"</pre>
-
-	<p>
-	  Add environment variables to the virtualenv, use script setup-keys
-	</p>
-	<pre class="command">setup-keys <i>project-slug</i> <i>environment-directory</i></pre>
-
-	<p>
-	  Make sure DJANGO_SETTINGS_MODULE points to the production settings
-	</p>
-	
-      </li>
       
-      <li>      
-	<h3>Create database</h3>
-	<pre class="command">psql postgres -c "CREATE ROLE <i>db_user</i> WITH LOGIN PASSWORD '${DB_PW}';"
-psql postgres -c "CREATE DATABASE <i>db_name</i> OWNER <i>db_user</i>;"
-	</pre>
-      </li>
+      		<li>      
+				<h3>Create database</h3>
+				<p><strong>For a blank database:</strong> Use the script setup_db to create a new database. then run migrations</p>
+				<pre class="command"> setup_db <em>project-slug</em>_user <em>project-slug</em>_db $<em>project_slug</em>_DB_PW</pre>			
+				<p><strong>To import data from development:</strong> First export the data on the development machine. Put the file outside source control.</p>
+				<pre class="command">pg_dump -U gabe <em>project-slug</em>_db >> logs/<em>project-slug</em>.pgsql</pre>
+				<p>Transfer the file to the server via scp run the setup_db script on the server to create the database, then import the data to the server database</p>
+				<pre class="command">psql -U gabe <em>project-slug</em>_db < <em>project-slug</em>.pgsql</pre>
+      		</li>
 
-      <li>
-	<h3>Set up settings files</h3>
-	<p>
-	  Remove the unnecessary parts of the production settings file.
-	</p>
+      		<li>
+				<h3>Check production settings</h3>
+				<p>Make sure the settings are ready for production.</p>
+				<pre class="command">
+# Allowed hosts - set to project domain
+ALLOWED_HOSTS = ["<em>project-domain</em>.com", "www.<em>project-domain</em>.com"]
 
-      </li>
+# SECRET KEY - set from environment variable
+SECRET_KEY = env("<em>project-slug</em>_SECRET_KEY")
 
-      <li>
-	<h3>Create directory for logs</h3>
-	<p>This should be in the project directory, but excluded from source control in .gitignore</p>
-	<p>Run commands in the project directory</p>
-	<pre class="command">mkdir logs
-touch logs/debug.log
-touch logs/gunicorn_supervisor.log
-touch logs/nginx-access.log
-touch logs/nginx-error.log
-	</pre>
+# Email settings - install anymail for Amazon SES
+# Add the AWS keys in the environment variables
+# Anymail (Mailgun)
+# ------------------------------------------------------------------------------
+# https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
+INSTALLED_APPS += ["anymail"]  # noqa F405
+EMAIL_BACKEND = 'anymail.backends.amazon_ses.EmailBackend'
+# https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 
-	<p>
-	  Or use script make-logs
-	</p>
-	<pre class="command">make-logs</pre>
+ANYMAIL = {
+    "AMAZON_SES_CLIENT_PARAMS": {
+        "region_name": "us-east-1"
+    }
+}
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
+EMAIL_SUBJECT_PREFIX = env(
+    "DJANGO_EMAIL_SUBJECT_PREFIX", default="[msteinberg.art]"
+)
+
+ADMINS = [
+    ("""Gabriel Getzie""", "gabe@kotsf.com"),
+]
+
+# Logging - enable email for error logs
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s '
+                      '%(process)d %(thread)d %(message)s'
+        },
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/usr/local/src/mscv2/logs/debug.log'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True
+        },
+        'django.security.DisallowedHost': {
+            'level': 'ERROR',
+            'handlers': ['console', 'mail_admins'],
+            'propagate': True
+        },
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+            },
+        '': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+            },
+    }
+}
+</pre>
+
+      		</li>
+
+			<li>
+				<h3>Create directory for logs</h3>
+				<p>This should be in the project directory, but excluded from source control in .gitignore</p>
 	
-      </li>	  
+				<pre class="command">make_logs</pre>
+			</li>	  
       
-      <li>
-	<h3>Configure gunicorn</h3>
-	<p>
-	The script below should be included in a cloned repo as
-	gunicorn_start_local.sh. Ensure filepaths are still correct on the new
-	deploy. Use the production version. Make sure DJANGO_SETTINGS_MODULE
-	points to the production settings.
-	</p>
+      		<li>
+				<h3>Configure gunicorn</h3>
+				<p>
+					The script below should be included in a cloned repo as
+					gunicorn_start_local.sh. Ensure filepaths are still correct on the new
+					deploy. Use the production version. Make sure DJANGO_SETTINGS_MODULE
+					points to the production settings.
+				</p>
 	
-	<pre class="command"> #!/bin/bash
-NAME="<i>app_name</i>"
-DJANGODIR="/usr/local/src/<i>project-slug</i>/"
-SOCKFILE="/usr/local/src/<i>project-slug</i>/run/gunicorn.sock"
-USER=<i>app_user</i>
+				<pre class="command"> #!/bin/bash
+NAME="<em>app_name</em>"
+DJANGODIR="/usr/local/src/<em>project-slug</em>/"
+SOCKFILE="/usr/local/src/<em>project-slug</em>/run/gunicorn.sock"
+USER=<em>app_user</em>
 GROUP=webapps
 NUM_WORKERS=3
 DJANGO_SETTINGS_MODULE=config.settings.production
@@ -187,7 +199,7 @@ echo "Starting $NAME as `whoami`"
 
 # Activate the virtual environment
 cd $DJANGODIR
-source /usr/local/src/env/<i>envdir</i>/bin/activate
+source /usr/local/src/env/<em>envdir</em>/bin/activate
 
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
@@ -201,7 +213,7 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 # daemonize themselves.
 # (do not use --daemon)
 
-exec /usr/local/src/env/<i>envdir</i>/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
+exec /usr/local/src/env/<em>envdir</em>/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
     -- name $NAME \
     -- workers $NUM_WORKERS \
     -- user=$USER --group=$GROUP \
@@ -209,145 +221,143 @@ exec /usr/local/src/env/<i>envdir</i>/bin/gunicorn ${DJANGO_WSGI_MODULE}:applica
     --log-level=debug \
     --log-file=-
 	</pre>
-      </li>
+      		</li>
       
-      <li>
-	<h3>Configure supervisor</h3>
+      		<li>
+				<h3>Configure supervisor</h3>
 
-	<p>
-	  Supervisor monitors the gunicorn process and restarts it automtically
-	  when the machine reboots. Make sure to use th production version.
-	</p>
+				<p>
+					Supervisor monitors the gunicorn process and restarts it automtically
+					when the machine reboots. Make sure to use th production version.
+				</p>
 
-	<pre class="command">[program:<i>project-slug</i>]
-command = /usr/local/src/<i>project-slug</i>/bin/gunicorn_start_local.bash ; Command to start app
-user = <i>app_user</i>                                                     ; User to run as
+				<pre class="command">[program:<em>project-slug</em>]
+command = /usr/local/src/<em>project-slug</em>/bin/gunicorn_start_local.bash ; Command to start app
+user = <em>app_user</em>                                                     ; User to run as
 ; Where to write log messages
-stdout_logfile = /usr/local/src/<i>project-slug</i>/log/gunicorn_supervisor.log   
+stdout_logfile = /usr/local/src/<em>project-slug</em>/log/gunicorn_supervisor.log   
 ; Save stderr in the same log
 redirect_stderr = true                                                
 environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8                       ; Set UTF-8 as default encoding</pre>
-      </li>
+      		</li>
 
-      <li>
-	<h3>Configure nginx</h3>
-	<p>The settings below should be included in the repo as bin/nginx_local_aeq.conf</p>
-	<pre class="command">upstream aeq_app_server {
-  # fail_timeout=0 means we always retry an upstream even if it failed
-  # to return a good HTTP response (in case the Unicorn master nukes a
-  # single worker for timing out).
- 
-  server 127.0.0.1:8000 fail_timeout=0;
+			<li>
+				<h3>Configure nginx</h3>
+				<p>The settings below should be included in the repo as bin/nginx_local_aeq.conf</p>
+				<pre class="command">upstream aeq_app_server {
+# fail_timeout=0 means we always retry an upstream even if it failed
+# to return a good HTTP response (in case the Unicorn master nukes a
+# single worker for timing out).
+
+server 127.0.0.1:8000 fail_timeout=0;
 }
- 
+
 server {
- 
-    listen   80;
-    server_name <i>project-slug</i>;
- 
-    client_max_body_size 4G;
- 
-    access_log /usr/local/src/<i>project-slug</i>/log/nginx-access.log;
-    error_log /usr/local/src/<i>project-slug</i>/log/nginx-error.log;
- 
-    location /static/ {
-        alias   /usr/local/src/<i>project-slug</i>/staticfiles/;
-    }
-    
-    # location /media/ {
-    #     alias   /usr/local/src/cashcal/media/;
-    # }
- 
-    location / {
-        # an HTTP header important enough to have its own Wikipedia entry:
-        #   http://en.wikipedia.org/wiki/X-Forwarded-For
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
- 
-        # enable this if and only if you use HTTPS, this helps Rack
-        # set the proper protocol for doing redirects:
-        # proxy_set_header X-Forwarded-Proto https;
- 
-        # pass the Host: header from the client right along so redirects
-        # can be set properly within the Rack application
-        proxy_set_header Host $http_host;
- 
-        # we don't want nginx trying to do something clever with
-        # redirects, we set the Host: header above already.
-        proxy_redirect off;
- 
-        # set "proxy_buffering off" *only* for Rainbows! when doing
-        # Comet/long-poll stuff.  It's also safe to set if you're
-        # using only serving fast clients with Unicorn + nginx.
-        # Otherwise you _want_ nginx to buffer responses to slow
-        # clients, really.
-        # proxy_buffering off;
- 
-        # Try to serve static files from nginx, no point in making an
-        # *application* server like Unicorn/Rainbows! serve static files.
-        if (!-f $request_filename) {
-            proxy_pass http://prophit_app_server;
-            break;
-        }
-    }
-	  }</pre>
-      </li>
 
-      <li>
-	<h3>Symlink server configuration files</h3>
-	<p>run link-srv script from ~/bin</p>
-	<pre class="command">link-srv <i>project</i> production <i>slug</i></pre>
-      </li>
-      
+listen   80;
+server_name <em>project-slug</em>;
 
-      <li>
-	<h3>Create directory for MEDIA_ROOT and user uploads</h3>
+client_max_body_size 4G;
 
-	<pre class="command">sudo mkdir -p /var/www/<i>project</i>/uploads
-	  sudo chown -R <i>app_user</i>:webapps /var/www/<i>project</i>/
-	</pre>
-      </li>
-      
+access_log /usr/local/src/<em>project-slug</em>/log/nginx-access.log;
+error_log /usr/local/src/<em>project-slug</em>/log/nginx-error.log;
 
-      <li>
-	<h3>Install & configure memcached</h3>
-	<p>Memcached is installed in the server. Make sure the caching is set up in the production settings file</p>
-	<pre class="command">CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
-        'LOCATION': '127.0.0.1:11211',
-    }
+location /static/ {
+	alias   /usr/local/src/<em>project-slug</em>/staticfiles/;
 }
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-</pre>
-      </li>
+# location /media/ {
+#     alias   /usr/local/src/cashcal/media/;
+# }
 
-      <li>
-	<h3>Enable SSL</h3>
-	<pre class="command">sudo certbot --nginx</pre>
+location / {
+	# an HTTP header important enough to have its own Wikipedia entry:
+	#   http://en.wikipedia.org/wiki/X-Forwarded-For
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-	<p>
-	  uncomment line in nginx config
-	</p>
-	<pre class="command">proxy_set_header X-Forwarded-Proto https;</pre>
-	<p>
-	  After running certbot, commit the changes to the git repo on the server.
-	</p>
-      </li>
+	# enable this if and only if you use HTTPS, this helps Rack
+	# set the proper protocol for doing redirects:
+	# proxy_set_header X-Forwarded-Proto https;
 
-      <li>
-	<h3>Install rabbit server and configure celery (holdover from prophit)</h3>
-	<p>
-	First make sure rabbit server is
-	installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
-	instructions.</a>
-	</p>
+	# pass the Host: header from the client right along so redirects
+	# can be set properly within the Rack application
+	proxy_set_header Host $http_host;
 
-	<p>Link the appropriate celery config file to supervisor</p>
-	<pre class="command">sudo ln -s /usr/local/src/$PROPHIT_DIR/bin/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
+	# we don't want nginx trying to do something clever with
+	# redirects, we set the Host: header above already.
+	proxy_redirect off;
+
+	# set "proxy_buffering off" *only* for Rainbows! when doing
+	# Comet/long-poll stuff.  It's also safe to set if you're
+	# using only serving fast clients with Unicorn + nginx.
+	# Otherwise you _want_ nginx to buffer responses to slow
+	# clients, really.
+	# proxy_buffering off;
+
+	# Try to serve static files from nginx, no point in making an
+	# *application* server like Unicorn/Rainbows! serve static files.
+	if (!-f $request_filename) {
+		proxy_pass http://prophit_app_server;
+		break;
+	}
+}
+	}</pre>
+			</li>
+
+			<li>
+				<h3>Symlink server configuration files</h3>
+				<p>run link-srv script from ~/bin</p>
+				<pre class="command">link-srv <em>project</em> production <em>slug</em></pre>
+			</li>
+      
+
+			<li>
+				<h3>Create directory for MEDIA_ROOT and user uploads</h3>
+
+				<pre class="command">sudo mkdir -p /var/www/<em>project-slug</em>/uploads
+sudo chown -R <em>app_user</em>:webapps /var/www/<em>project-slug</em>/</pre>
+			</li>
+      
+
+			<li>
+				<h3>Install & configure memcached</h3>
+				<p>Memcached is installed in the server. Make sure the caching is set up in the production settings file</p>
+				<pre class="command">
+CACHES = {
+	'default': {
+		'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
+		'LOCATION': '127.0.0.1:11211',
+	}
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'</pre>
+			</li>
+
+			<li>
+				<h3>Enable SSL</h3>
+				<pre class="command">sudo certbot --nginx</pre>
+
+				<p>
+				uncomment line in nginx config
+				</p>
+				<pre class="command">proxy_set_header X-Forwarded-Proto https;</pre>
+				<p>After running certbot, commit the changes to the git repo on the server and push to github.</p>
+			</li>
+
+			<li>
+				<h3>Install rabbit server and configure celery (Optional)</h3>
+				<p>
+					First make sure rabbit server is
+					installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
+					instructions.</a>
+				</p>
+
+				<p>Link the appropriate celery config file to supervisor</p>
+				<pre class="command">sudo ln -s /usr/local/src/$PROPHIT_DIR/bin/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
 sudo supervisorctl reread
 sudo supervisorctl update</pre>
-      </li>
-    </ol>
-  </body>
+			</li>
+    	</ol>
+		<script type="text/javascript" src="howto.js"></script>
+  	</body>
 </html>

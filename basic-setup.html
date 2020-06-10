@@ -1,92 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE html>
 <html>
   <head>
     <title>Basic Project Setup</title>
-    <style type="text/css">
-    body {
-	font-family: verdana;
-	text-align: left;
-	width: 75%;
-    }
 
-    pre.command {
-	font-family: monospace;
-	font-weight: bold;
-	font-size: 110%;
-	text-align: left;
-	border: thin solid rgb(0,0,0);
-	width: 100%;
-	line-height: normal;
-	padding: 1%;
-	margin: 1% 0 1% 2%;
-	text-align: left;
-	background-color: #CCCCCC;
-    }
-    
-    ol#instructions > li {
-	margin-bottom: 40px;
-    }
+	<link rel="stylesheet" type="text/css" href="howto.css">
 
-    ol.toc li {
-	margin-bottom: 10px;
-    }
-
-	ul.small-list li {
-		margin-bottom: auto;
-	}
-	
-	h3 {
-		display: inline-block;
-		margin-bottom: 0;
-	}
-
-	ul.small-list {
-		list-style: none;
-	}
-    
-    p#important {
-	background-color: red;
-	text-align: center;
-	font-weight: bold;
-    }      
-    
-    a.btt {
-	font-size: small;
-    }
-    </style>
-
-    <script type="text/javascript">
-    function maketoc() {
-		allh3 = document.getElementsByTagName('h3');
-		insBefore = document.getElementById("start");
-		toc = document.createElement('ol');
-		toc.setAttribute("class", "toc");
-		for (var i = 0; i < allh3.length; i++) {
-			sectionnumber = i + 1;
-			// make a bookmark anchor at the h3 heading
-			sectionlink = document.createElement('a');
-			sectionlink.name = "section" + sectionnumber;
-			allh3[i].parentNode.insertBefore(sectionlink, allh3[i]);			  
-			
-			// add a "Back to Top" link
-			btt = document.createElement('a');
-			btt.href = "#top";
-			btt.innerHTML = "Back To Top";
-			btt.setAttribute("class", "btt");
-			allh3[i].parentNode.appendChild(btt);
-			
-			
-			// add a link to the bookmark to the table of contents
-			thisli = document.createElement('li')
-			toclink = document.createElement('a');
-			toclink.href = "#section" + sectionnumber;
-			toclink.innerHTML = allh3[i].innerHTML;
-			thisli.appendChild(toclink);
-			toc.appendChild(thisli);
-		}
-		insBefore.parentNode.insertBefore(toc, insBefore);
-    }
-    </script>
   </head>
 
   <body onload="maketoc()">
@@ -109,6 +27,7 @@
 libfreetype6-dev libpng-dev libjpeg-dev git nginx makepasswd postgresql postgresql-contrib \
 supervisor libxml2-dev libxslt1-dev python-psycopg2 libpq-dev
 			</pre>
+			<p>Clone the homebin repository at <a href="https://github.com/ggetzie/homebin">https://github.com/ggetzie/homebin</a> to the home directory and place it on the path to make the setup scripts available</p>
 		</li>
       
 		<li>
@@ -354,5 +273,7 @@ sudo supervisorctl reread
 sudo supervisorctl update</pre>
       </li>
     </ol>
+	<script type="text/javascript" src="howto.js"></script>
   </body>
+  
 </html>
