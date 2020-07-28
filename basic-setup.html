@@ -153,18 +153,21 @@ env("variable_name", default="default")</pre>
 		<li>
 			<h3>Configure Database</h3>
 			<p>
-			Note, this is only necessary for setting up from scratch. Settings
-			will be ready if set up from cloned repo.
+				Note, this is only necessary for setting up from scratch. Settings
+				will be ready if set up from cloned repo.
+			</p>
+			<p>
+				Keep in mind, Postgres will convert everything to lower case!
 			</p>
 			<pre class="command">
 DATABASES = {
-	'default': {
-		'ENGINE': 'django.db.backends.postgresql_psycopg2',
-		'NAME': '<em>project-slug</em>_db',
-		'USER': '<em>project-slug</em>_user',
-		'PASSWORD': env(<em>project-slug</em>_DB_PW), # store in environment variable
-		'HOST': 'localhost',
-		'PORT': '',                      # Set to empty string for default.
+	"default": {
+		"ENGINE": "django.db.backends.postgresql_psycopg2",
+		"NAME": "<em>project-slug</em>_db",
+		"USER": "<em>project-slug</em>_user",
+		"PASSWORD": env("<em>project-slug</em>_DB_PW"), # store in environment variable
+		"HOST": "localhost",
+		"PORT": "",                      # Set to empty string for default.
 	}
 }</pre>
 			
