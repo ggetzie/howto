@@ -233,7 +233,9 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'</pre>
 
 		<li>
 			<h3>(Optional) Install & configure Redis</h3>
-			<pre class="command">sudo apt install redis
+			<pre class="command">sudo add-apt-repository ppa:redislabs/redis
+sudo apt update
+sudo apt install redis
 pip install django_redis</pre>
 			<p>Add the following line to the virtual environment activate script</p>
 			<pre class="command">export REDIS_URL="redis://127.0.0.1:6379/1"</pre>
