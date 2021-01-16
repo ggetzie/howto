@@ -317,21 +317,35 @@ location / {
 				<pre class="command">sudo mkdir -p /var/www/<em>project-slug</em>/uploads
 sudo chown -R <em>app_user</em>:webapps /var/www/<em>project-slug</em>/</pre>
 			</li>
-      
 
-			<li>
-				<h3>Install & configure memcached</h3>
-				<p>Memcached is installed in the server. Make sure the caching is set up in the production settings file</p>
-				<pre class="command">
+		<li>
+			<h3>(Optional) Install & configure Redis</h3>
+			<pre class="command">sudo add-apt-repository ppa:redislabs/redis
+sudo apt update
+sudo apt install redis
+pip install django_redis
+sudo service redis-server start</pre>
+			<p>Add the following line to the virtual environment activate script</p>
+			<pre class="command">export REDIS_URL="redis://127.0.0.1:6379/1"</pre>
+			<p>Add to the django settings file. Included if using cookiecutter.</p>
+			<pre class="command">
+# CACHES
+# ------------------------------------------------------------------------------
 CACHES = {
-	'default': {
-		'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache', 
-		'LOCATION': '127.0.0.1:11211',
-	}
-}
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'</pre>
-			</li>
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env("REDIS_URL"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # Mimicing memcache behavior.
+            # http://niwinz.github.io/django-redis/latest/#_memcached_exceptions_behavior
+            "IGNORE_EXCEPTIONS": True,
+        },
+        "KEY_PREFIX": "<em>project-slug</em>"
+    }
+}			
+			</pre>
+	</li>
 
 			<li>
 				<h3>Enable SSL</h3>

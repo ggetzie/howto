@@ -236,7 +236,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'</pre>
 			<pre class="command">sudo add-apt-repository ppa:redislabs/redis
 sudo apt update
 sudo apt install redis
-pip install django_redis</pre>
+pip install django_redis
+sudo service redis-server start</pre>
 			<p>Add the following line to the virtual environment activate script</p>
 			<pre class="command">export REDIS_URL="redis://127.0.0.1:6379/1"</pre>
 			<p>Add to the django settings file. Included if using cookiecutter.</p>
@@ -257,7 +258,7 @@ CACHES = {
     }
 }			
 			</pre>
-
+	</li>
 		<li>
 			<h3>(Optional) Install NLTK corpora via python shell</h3>
 			<p>Only necessary if using the python natural language toolkit</p>
@@ -265,13 +266,7 @@ CACHES = {
 		</li>
 
       <li>
-		<h3>(Optional) Install rabbit server and configure celery</h3>
-		<p>
-			First make sure rabbit server is
-			installed. Follow <a href="http://www.rabbitmq.com/install-debian.html">the
-			instructions.</a>
-		</p>
-
+		<h3>(Optional) Configure celery</h3>
 		<p>Link the appropriate celery config file to supervisor</p>
 		<pre class="command">sudo ln -s /usr/local/src/<em>project-slug</em>/srv/local/super_celery.conf /etc/supervisor/conf.d/celery.conf
 sudo supervisorctl reread
